@@ -7,6 +7,7 @@ const auth = require("../middleware/jwt.middleware")
 router.post("/login", handler.validate("login"), request.validate, handler.loginUser);
 router.post("/register", handler.validate("register"), request.validate, handler.register);
 router.post("/refresh-token", handler.validate("refreshToken"), request.validate, auth.authenticateRefreshToken, handler.refresToken);
+router.get("/logout", request.validate, auth.authenticateToken, handler.logout);
 
 
 module.exports = router

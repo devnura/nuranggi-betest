@@ -15,11 +15,8 @@ const authenticateRefreshToken = (req, res, next) => {
   let { refresh_token } = req.body
 
   if(!refresh_token){
-    return res.json({
-      code: "400",
-      message: "Refresh Token is required !",
-      data: {},
-    });
+    let result = helper.createResponse(400, "Internal Server Error", "Refresh Token is required !")
+    return res.status(400).json(result);
   }
 
   let verifyOptions = {
@@ -28,11 +25,8 @@ const authenticateRefreshToken = (req, res, next) => {
 
   jwt.verify(refresh_token, process.env.REFRESH_TOKEN_SECRET, verifyOptions, (err, data) => {
     if (err) {
-      return res.json({
-        code: "400",
-        message: "Refresh Token is invalid. Please login!",
-        data: {},
-      });
+      let result = helper.createResponse(400, "Internal Server Error", err.message)
+      return res.status(400).json(result);
     }
 
     req.id = helper.decryptText(data.id)
@@ -71,11 +65,8 @@ const authenticateToken = (req, res, next) => {
 
     jwt.verify(token, process.env.TOKEN_SECRET, verifyOptions, (err, data) => {
       if (err) {
-        return res.json({
-          code: "402",
-          message: err.message,
-          data: {},
-        });
+        let result = helper.createResponse(402, "Bad Request", err.message)
+        return res.status(402).json(result);
       }
 
       req.id = helper.decryptText(data.id);
@@ -84,11 +75,8 @@ const authenticateToken = (req, res, next) => {
       next();
     });
   } else {
-    return res.json({
-      code: "400",
-      message: "Header not found",
-      data: {},
-    });
+    let result = helper.createResponse(400, "Bad Request", "Header not found")
+    return res.status(400).json(result);
   }
 };
 

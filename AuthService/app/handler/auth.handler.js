@@ -185,3 +185,34 @@ exports.refresToken = async(req, res) => {
         return res.status(500).json(result)
     }
 }
+
+exports.logout = async(req, res) => {
+    try {
+        let response = {}
+        const user = await userRepository.findById(req.id)
+        if (!user){
+            result = helper.createResponse(404, "Not Found", "Invalid login session")
+            winston.logger.warn(
+                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+            );
+            return res.status(404).json(result)
+        }
+
+        const save = await userRepository.udpateUser(user.id, {refresToken: ""})
+
+        response = helper.createResponse(200, "Ok", [])
+        // log info
+        winston.logger.info(
+            `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(response)}`
+        );
+        return res.status(200).json(response)
+
+    } catch (error) {
+        console.log(error.message)
+        result = helper.createResponse(500, "Internal Server Error", error.message)
+        winston.logger.error(
+            `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+            );
+        return res.status(500).json(result)
+    }
+}
