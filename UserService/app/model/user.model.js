@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
-});
+},{ collection: 'user' });
 
 userSchema.method("toJSON", function() {
     const { __v, _id, ...object } = this.toObject();
