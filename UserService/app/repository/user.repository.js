@@ -19,6 +19,18 @@ exports.findById = async (id) => {
     return rows
 }
 
+exports.findByAccountNumber  = async (accountNumber) => {
+    const rows = await userModel.findOne({ accountNumber: accountNumber }).exec()
+
+    return rows
+}
+
+exports.findByIdentityNumber  = async (identityNumber) => {
+    const rows = await userModel.findOne({ identityNumber: identityNumber }).exec()
+
+    return rows
+}
+
 exports.createUser = async (data) => {
     const model = new userModel(data)
     const saveduser = await model.save()
@@ -28,13 +40,13 @@ exports.createUser = async (data) => {
 
 exports.udpateUser =async (id, data) => {
     const model = new userModel(data)
-    const user = await userModel.updateOne({_id: id}, data);
+    const user = await model.updateOne({_id: id}, data);
 
     return user
 }
 exports.deleteUser =async (id, data) => {
     const model = new userModel(data)
-    const user = await userModel.deleteOne({_id: id});
+    const user = await model.deleteOne({_id: id});
 
     return user
 }

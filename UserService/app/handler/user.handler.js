@@ -9,32 +9,40 @@ exports.validate = (method) => {
     switch (method) {
       case "create":
         return [
-          body("userName").not().isEmpty().withMessage("userName is required"),
-          body("accountNumber").isNumeric().withMessage("accountNumber must number").not().isEmpty().withMessage("accountNumber is required"),
+          body("userName").not().isEmpty().withMessage("userName is required").escape().trim(),
+          body("accountNumber").isNumeric().withMessage("accountNumber must number").not().isEmpty().withMessage("accountNumber is required").escape().trim(),
+          body("identityNumber").isNumeric().withMessage("identityNumber must number").not().isEmpty().withMessage("identityNumber is required").isLength({
+            max: 16,
+            min : 16
+            }).withMessage('identityNumber mush 16 character lenght!').escape().trim(),
           body('emailAddress').notEmpty().withMessage('emailAddress is required!').isEmail().withMessage("Invalid emailAddress format")
           .isLength({
               max: 64
-          }).withMessage('emailAddress is out of length!')
+          }).withMessage('emailAddress is out of length!').escape().trim()
         ];
         case "update":
             return [
               check("id").notEmpty().withMessage('id is required!').isLength({
                 max: 24,
                 min : 24
-                }),
-              body("userName").not().isEmpty().withMessage("userName is required"),
-              body("accountNumber").isNumeric().withMessage("accountNumber must number").not().isEmpty().withMessage("accountNumber is required"),
+                }).escape().trim(),
+              body("userName").not().isEmpty().withMessage("userName is required").escape().trim(),
+              body("accountNumber").isNumeric().withMessage("accountNumber must number").not().isEmpty().withMessage("accountNumber is required").escape().trim(),
+              body("identityNumber").isNumeric().withMessage("identityNumber must number").not().isEmpty().withMessage("identityNumber is required").isLength({
+                max: 16,
+                min : 16
+                }).withMessage('identityNumber mush 24 character lenght!').escape().trim(),
               body('emailAddress').notEmpty().withMessage('emailAddress is required!').isEmail().withMessage("Invalid emailAddress format")
               .isLength({
                   max: 64
-              }).withMessage('emailAddress is out of length!')
+              }).withMessage('emailAddress is out of length!').escape().trim()
         ];
         case "checkId":
             return [
                 check("id").notEmpty().withMessage('id is required!').isLength({
                     max: 24,
                     min : 24
-                    }).withMessage('id mush 24 character lenght!')
+                    }).withMessage('id mush 24 character lenght!').escape().trim()
         ];
       default:
         break;
@@ -110,12 +118,74 @@ exports.findById = async (req, res) => {
     }
 }
 
+exports.findByidentityNumber = async (req, res) => {
+    try {
+        let response = {}
+
+        const { id } = req.params
+
+        const user = await userRepository.findByIdentityNumber(id)
+        if (!user){
+            result = helper.createResponse(404, "Not Found", "User Not Found")
+            // log info
+            winston.logger.warn(
+                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(response)}`
+            );
+            return res.status(404).json(result)
+        }
+        response = helper.createResponse(200, "Ok", [], user)
+        // log info
+        winston.logger.info(
+            `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(response)}`
+        );
+        return res.status(200).json(response)
+
+    } catch (error) {
+        result = helper.createResponse(500, "Internal Server Error", error.message)
+        winston.logger.error(
+            `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+        );
+        return res.status(500).json(result)
+    }
+}
+
+exports.findByAccountNumber = async (req, res) => {
+    try {
+        let response = {}
+
+        const { id } = req.params
+
+        const user = await userRepository.findByAccountNumber(id)
+        if (!user){
+            result = helper.createResponse(404, "Not Found", "User Not Found")
+            // log info
+            winston.logger.warn(
+                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(response)}`
+            );
+            return res.status(404).json(result)
+        }
+        response = helper.createResponse(200, "Ok", [], user)
+        // log info
+        winston.logger.info(
+            `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(response)}`
+        );
+        return res.status(200).json(response)
+
+    } catch (error) {
+        result = helper.createResponse(500, "Internal Server Error", error.message)
+        winston.logger.error(
+            `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+        );
+        return res.status(500).json(result)
+    }
+}
+
 exports.createUser = async(req, res) => {
     try {
         let response = {}
         const body = req.body
 
-        const save = await userRepository.createUser({emailAddress: body.emailAddress, userName:body.userName, accountNumber: body.accountNumber})
+        const save = await userRepository.createUser({emailAddress: body.emailAddress, userName:body.userName, accountNumber: body.accountNumber, identityNumber: body.identityNumber})
 
         response = helper.createResponse(201, "Created", [], save)
         // log info

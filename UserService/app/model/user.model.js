@@ -20,6 +20,13 @@ const userSchema = new mongoose.Schema({
         unique: true,
         trim: true,
     },
+    identityNumber: {
+        type : String,
+        required : true,
+        trim: true,
+        index: true,
+        unique: true
+    },
     createdAt: { 
         type: Date,
         default: Date.now
