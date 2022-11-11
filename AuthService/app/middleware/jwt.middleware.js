@@ -35,7 +35,7 @@ const authenticateRefreshToken = (req, res, next) => {
       });
     }
 
-    req.code = helper.decryptText(data.code)
+    req.id = helper.decryptText(data.id)
 
     next();
 
@@ -78,9 +78,8 @@ const authenticateToken = (req, res, next) => {
         });
       }
 
-      req.code = helper.decryptText(data.code);
-      req.group = helper.decryptText(data.group);
-      req.name = helper.decryptText(data.name);
+      req.id = helper.decryptText(data.id);
+      req.userName = helper.decryptText(data.userName);
 
       next();
     });

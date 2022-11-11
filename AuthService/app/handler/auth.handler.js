@@ -3,14 +3,24 @@ const helper = require("../helpers/helper")
 const winston = require("../helpers/winston.logger");
 const jwt = require("../middleware/jwt.middleware");
 const {body, check } = require("express-validator");
+const bcrypt = require("bcrypt");
 
 // VALIDATION
 exports.validate = (method) => {
     switch (method) {
       case "login":
         return [
-          body("password").not().isEmpty().withMessage("userName is required"),
+          body("password").not().isEmpty().withMessage("password is required"),
           body('email').notEmpty().withMessage('email is required!').isEmail().withMessage("Invalid email format")
+          .isLength({
+              max: 64
+          }).withMessage('email is out of length!')
+        ];
+      case "register":
+        return [
+          body("password").notEmpty().withMessage("password is required"),
+          body("userName").notEmpty().withMessage("userName is required"),
+          body('emailAddress').notEmpty().withMessage('emailAddress is required!').isEmail().withMessage("Invalid email format")
           .isLength({
               max: 64
           }).withMessage('email is out of length!')
@@ -64,7 +74,7 @@ exports.loginUser = async (req, res) => {
         if(!user.refresToken){
             // generate refresh token
             refreshToken = jwt.generateRefreshToken({
-                code: helper.encryptText(user.id),
+                id: helper.encryptText(user.id),
             })
         }else {
             // generate access token
@@ -73,7 +83,7 @@ exports.loginUser = async (req, res) => {
 
         let data = {
             name: user?.userName || "",
-            email: emailAddress?.c_last_name || "",
+            email: user?.emailAddress || "",
             access_token: accessToken,
             refresh_token: refreshToken,
           }
@@ -95,14 +105,18 @@ exports.loginUser = async (req, res) => {
     }
 }
 
-exports.refreshToken = async(req, res) => {
+exports.register = async(req, res) => {
     try {
         let response = {}
         const body = req.body
 
-        const save = await userRepository.createUser({emailAddress: body.emailAddress, userName:body.userName, accountNumber: body.accountNumber})
+        const saltRounds = 10;
+        let salt = bcrypt.genSaltSync(saltRounds);
+        let passwordHash = bcrypt.hashSync(body.password, salt)
 
-        response = helper.createResponse(201, "Created", [], save)
+        const save = await userRepository.createUser({userName : body.userName, emailAddress: body.emailAddress, password :passwordHash})
+
+        response = helper.createResponse(201, "Created")
         // log info
         winston.logger.info(
             `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(response)}`
@@ -119,13 +133,13 @@ exports.refreshToken = async(req, res) => {
     }
 }
 
-exports.logout = async(req, res) => {
+exports.refresToken = async(req, res) => {
     try {
         let response = {}
         const body = req.body
-        const { id } = req.params
+        const user = await userRepository.findById(req.id)
+        let accessToken, refreshToken
 
-        const user = await userRepository.findById(id)
         if (!user){
             result = helper.createResponse(404, "Not Found", "User Not Found")
             winston.logger.warn(
@@ -134,10 +148,29 @@ exports.logout = async(req, res) => {
             return res.status(404).json(result)
         }
 
-        const save = await userRepository.udpateUser(id, {emailAddress: body.emailAddress, userName:body.userName, accountNumber: body.accountNumber})
+        // generate access token
+        accessToken = jwt.generateAccessToken({
+            id: helper.encryptText(user.id),
+            userName: helper.encryptText(user.userName)
+        })
 
-        response = helper.createResponse(201, "OK", [], "Data upated succesfully")
+        // generate refresh token
+        refreshToken = jwt.generateRefreshToken({
+            id: helper.encryptText(user.id),
+        })
 
+        const save = await userRepository.udpateUser(user.id, {refresToken: body.emailAddress})
+
+        let data = {
+            name: user?.userName || "",
+            email: user?.emailAddress || "",
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          }
+
+
+        response = helper.createResponse(200, "Ok", [], data)
+        // log info
         winston.logger.info(
             `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(response)}`
         );
