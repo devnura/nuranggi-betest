@@ -1,0 +1,17 @@
+{
+    "server": {
+      "port": 7724
+    },
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/auth",
+        "service": "https://api.github.com"
+      },
+      {
+        "method": "GET",
+        "path": "/user",
+        "service": "http://dummy.restapiexample.com/api/v1"
+      }
+    ]
+  }
