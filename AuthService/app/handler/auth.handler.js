@@ -1,100 +1,85 @@
 const userRepository = require("../repository/user.repository")
 const helper = require("../helpers/helper")
 const winston = require("../helpers/winston.logger");
-
-const { param, body, check } = require("express-validator");
+const jwt = require("../middleware/jwt.middleware");
+const {body, check } = require("express-validator");
 
 // VALIDATION
 exports.validate = (method) => {
     switch (method) {
-      case "create":
+      case "login":
         return [
-          body("userName").not().isEmpty().withMessage("userName is required"),
-          body("accountNumber").isNumeric().withMessage("accountNumber must number").not().isEmpty().withMessage("accountNumber is required"),
-          body('emailAddress').notEmpty().withMessage('emailAddress is required!').isEmail().withMessage("Invalid emailAddress format")
+          body("password").not().isEmpty().withMessage("userName is required"),
+          body('email').notEmpty().withMessage('email is required!').isEmail().withMessage("Invalid email format")
           .isLength({
               max: 64
-          }).withMessage('emailAddress is out of length!')
+          }).withMessage('email is out of length!')
         ];
-        case "update":
-            return [
-              check("id").notEmpty().withMessage('id is required!').isLength({
-                max: 24,
-                min : 24
-                }),
-              body("userName").not().isEmpty().withMessage("userName is required"),
-              body("accountNumber").isNumeric().withMessage("accountNumber must number").not().isEmpty().withMessage("accountNumber is required"),
-              body('emailAddress').notEmpty().withMessage('emailAddress is required!').isEmail().withMessage("Invalid emailAddress format")
-              .isLength({
-                  max: 64
-              }).withMessage('emailAddress is out of length!')
-        ];
-        case "checkId":
-            return [
-                check("id").notEmpty().withMessage('id is required!').isLength({
-                    max: 24,
-                    min : 24
-                    }).withMessage('id mush 24 character lenght!')
-        ];
+    case "refreshToken":
+        return [
+            body("refresh_token").notEmpty().withMessage('refresh_token is required!')
+        ]
       default:
         break;
     }
   };
 
-exports.fetchAll = async(req, res) => {
-    try {
-        const uniqueCode = req.requestId;
-
-        let response = {}
-
-        const params = {
-            page: req.query.page || 1,
-            limit: req.query.limit || 10,
-        }
-
-        let page = params.page || 1;
-        if (page < 1) page = 1;
-        let offset = (page - 1) * params.limit;
-
-        const user = await userRepository.fetchAll(params.limit, offset)
-
-        let result = helper.generatePaginate(user.count, user.rows, page, params.limit, offset)
-
-        response = helper.createResponse(200, "Ok", [], result)
-
-        // log info
-        winston.logger.info(
-            `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(response)}`
-        );
-
-        return res.status(200).json(response)
-
-    } catch (error) {
-        result = helper.createResponse(500, "Internal Server Error", error.message)
-        winston.logger.error(
-            `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
-        );
-        return res.status(500).json(result)
-    }
-
-}
-
-exports.findById = async (req, res) => {
+exports.loginUser = async (req, res) => {
     try {
         let response = {}
 
-        const { id } = req.params
+        const { email, password } = req.body
+        let accessToken, refreshToken
 
-        const user = await userRepository.findById(id)
+        const user = await userRepository.findByEmail(email)
         if (!user){
-            result = helper.createResponse(404, "Not Found", "User Not Found")
+            result = helper.createResponse(401, "Unauthorized", "Invalid Email or password !")
             // log info
             winston.logger.warn(
                 `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(response)}`
             );
-            return res.status(404).json(result)
+            return res.status(401).json(result)
         }
-        response = helper.createResponse(200, "Ok", [], user)
+
+        // check password
+        let checkPassword = await bcrypt.compare(password, user.password);
+        if (!checkPassword) {
+    
+            result = helper.createResponse(401, "UNAUTHORIZED", "Invalid email or password", []);
+    
+            // log warn
+            winston.logger.warn(
+            `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
+            );
+    
+            return res.status(401).json(result);
+        }
+
+        // generate access token
+        accessToken = jwt.generateAccessToken({
+            id: helper.encryptText(user.id),
+            userName: helper.encryptText(user.userName)
+        })
+
+        if(!user.refresToken){
+            // generate refresh token
+            refreshToken = jwt.generateRefreshToken({
+                code: helper.encryptText(user.id),
+            })
+        }else {
+            // generate access token
+            refreshToken = user.refresToken
+        }
+
+        let data = {
+            name: user?.userName || "",
+            email: emailAddress?.c_last_name || "",
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          }
+
+
+        response = helper.createResponse(200, "Ok", [], data)
         // log info
         winston.logger.info(
             `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(response)}`
@@ -110,7 +95,7 @@ exports.findById = async (req, res) => {
     }
 }
 
-exports.createUser = async(req, res) => {
+exports.refreshToken = async(req, res) => {
     try {
         let response = {}
         const body = req.body
@@ -134,7 +119,7 @@ exports.createUser = async(req, res) => {
     }
 }
 
-exports.updateUser = async(req, res) => {
+exports.logout = async(req, res) => {
     try {
         let response = {}
         const body = req.body
@@ -164,35 +149,6 @@ exports.updateUser = async(req, res) => {
         winston.logger.error(
             `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
             );
-        return res.status(500).json(result)
-    }
-}
-
-exports.deleteUser = async(req, res) => {
-    try {
-        let response = {}
-        const { id } = req.params
-
-        const user = await userRepository.findById(id)
-        if (!user){
-            result = helper.createResponse(404, "Not Found", "User Not Found")
-            winston.logger.warn(
-                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
-            );
-            return res.status(404).json(result)
-        }
-
-        const deleteUser = await userRepository.deleteUser(id)
-
-        response = helper.createResponse(201, "OK", "Data deleted succesfuly")
-        return res.status(200).json(response)
-
-    } catch (error) {
-        console.log(error.message)
-        result = helper.createResponse(500, "Internal Server Error", error.message)
-        winston.logger.error(
-            `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(result)}`
-        );
         return res.status(500).json(result)
     }
 }

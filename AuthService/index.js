@@ -18,24 +18,24 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // ============================== ROUTES API ==============================
 const router = express.Router()
-const authRoute = require("./app/routes/auth.routes");
+const userRoute = require("./app/routes/auth.routes");
 
 //route v1
 app.use('/api/v1/', router);
 
-app.get("/", (req, res) => {
+router.get("/", (req, res) => {
   res.json({
-    message: "Welcome to Auth Services.",
+    message: "Welcome to User Services.",
   });
 });
 
-app.use((req, res, next) => {
-  res.status(404).json({
-      message: 'Ohh you are lost, read the API documentation to find your way back home :)'
-  })
-})
+// app.use((req, res, next) => {
+//   res.status(404).json({
+//       message: 'Ohh you are lost, read the API documentation to find your way back home :)'
+//   })
+// })
 
-router.use('/user', authRoute)
+router.use('/auth', userRoute)
 
 app.listen(port, () => {
   console.log(`User Services app listening on port ${port}`)

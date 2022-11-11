@@ -1,12 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const request = require('../helpers/validateRequest')
-const handler = require("../handler/user.handler")
+const handler = require("../handler/auth.handler")
 
-router.get("/", request.validate, handler.fetchAll);
-router.get("/:id", handler.validate("checkId"), request.validate, handler.findById);
-router.post("/", handler.validate("create"), request.validate, handler.createUser);
-router.put("/:id", handler.validate("checkId"), request.validate, handler.validate("update"), request.validate, handler.updateUser);
-router.delete("/:id", handler.validate("checkId"), request.validate, handler.deleteUser);
+router.post("/login", handler.validate("login"), request.validate, handler.loginUser);
+router.post("/register", handler.validate("login"), request.validate, handler.loginUser);
+router.post("/refres-token", handler.validate("login"), request.validate, handler.loginUser);
+
 
 module.exports = router

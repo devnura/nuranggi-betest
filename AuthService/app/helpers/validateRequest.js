@@ -6,7 +6,7 @@ const winston = require("../helpers/winston.logger")
 const helper = require('../helpers/helper')
 
 exports.validate = async (req, res, next) => {
-
+try {
     const requestId = helper.getUniqueCode()
     const requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
     // log info
@@ -32,4 +32,8 @@ exports.validate = async (req, res, next) => {
     req.requestUrl = requestUrl
 
     next()
+} catch (error) {
+    return res.status(500).json(error.message);
+}
+
 }

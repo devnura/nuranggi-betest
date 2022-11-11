@@ -17,6 +17,9 @@ const userSchema = new mongoose.Schema({
         unique: true,
         trim: true,
     },
+    refresToken: {
+        type : String,
+    },
     createdAt: { 
         type: Date,
         default: Date.now
