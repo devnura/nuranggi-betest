@@ -82,7 +82,7 @@ const authenticateToken = (req, res, next) => {
 };
 
 const isAuthenticate = (req, res, next) => {
-  if (req?.isAuthenticate == true) {
+  if (req.headers.isauthenticate == "true") {
       next();
   } else {
     let result = helper.createResponse(403, "Forbidden")
