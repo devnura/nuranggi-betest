@@ -9,7 +9,7 @@ router.post("/login", async (req, res) => {
     
     req.isAuthenticate = true
     const response = await axios.post(serviceUrl, req.body, {headers: {
-      'isAuthenticate' : true
+      'fromgateway' : true
     }})
 
     return res.status(response.status).json(response.data)
@@ -18,18 +18,36 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.post("/validate-token", async (req, res) => {
+router.post("/register", async (req, res) => {
+  try {
+    let serviceUrl = `${process.env.AUTH_SERVICE_URL}/api/v1/auth/register`
+    
+    req.isAuthenticate = true
+    const response = await axios.post(serviceUrl, req.body, {headers: {
+      'fromgateway' : true
+    }})
+
+    return res.status(response.status).json(response.data)
+  } catch (error) {
+    return res.status(error?.response?.status || 500).json(error?.response?.data || error.message)
+  }
+});
+
+router.get("/validate-token", async (req, res) => {
     try {
       let serviceUrl = `${process.env.AUTH_SERVICE_URL}/api/v1/auth/validate-token`
 
-      const response = await axios.post("http://127.0.0.1:3001/api/v1/auth/login", req.body)
+      const response = await axios.get(serviceUrl, {
+        headers: {
+          Authorization: `${req.headers["authorization"]}`,
+          fromgateway : true
+        }
+      })
 
-      console.log(response.data)
       return res.status(response.status).json(response.data)
     } catch (error) {
-      console.log(error)
       return res.status(error?.response?.status || 500).json(error?.response?.data || error.message)
     }
-  });
+});
 
 module.exports = router

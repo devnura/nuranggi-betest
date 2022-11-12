@@ -65,8 +65,8 @@ const authenticateToken = (req, res, next) => {
 
     jwt.verify(token, process.env.TOKEN_SECRET, verifyOptions, (err, data) => {
       if (err) {
-        let result = helper.createResponse(402, "Bad Request", err.message)
-        return res.status(402).json(result);
+        let result = helper.createResponse(401, "Bad Request", err.message)
+        return res.status(401).json(result);
       }
 
       req.id = helper.decryptText(data.id);
@@ -82,7 +82,7 @@ const authenticateToken = (req, res, next) => {
 };
 
 const isAuthenticate = (req, res, next) => {
-  if (req.headers.isauthenticate == "true") {
+  if (req.headers.fromgateway == "true") {
       next();
   } else {
     let result = helper.createResponse(403, "Forbidden")

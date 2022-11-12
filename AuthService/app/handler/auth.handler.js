@@ -109,6 +109,16 @@ exports.register = async(req, res) => {
     try {
         let response = {}
         const body = req.body
+        // chcek email
+        const email = await userRepository.findByEmail(body.emailAddress)
+        if(email) {
+            result = helper.createResponse(400, "Bad Request", "Email already used !")
+            // log info
+            winston.logger.warn(
+                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(response)}`
+            );
+            return res.status(400).json(result)
+        }
 
         const saltRounds = 10;
         let salt = bcrypt.genSaltSync(saltRounds);
@@ -187,39 +197,7 @@ exports.refresToken = async(req, res) => {
 }
 
 exports.validateToken = async (req, res) => {
-    let authHeader = req.headers["authorization"];
-
-    if (authHeader) {
-      let token = authHeader && authHeader.split(" ")[1];
-  
-      if (!token) {
-        return res.json({
-          code: "401",
-          message: "Token is required",
-          data: {},
-        });
-      }
-  
-      let verifyOptions = {
-        issuer: 'NURANGGIBETEST',
-      }
-  
-      jwt.verify(token, process.env.TOKEN_SECRET, verifyOptions, (err, data) => {
-        if (err) {
-          let result = helper.createResponse(402, "Bad Request", err.message)
-          return res.status(402).json(result);
-        }
-  
-        req.id = helper.decryptText(data.id);
-        req.userName = helper.decryptText(data.userName);
-        req.isAuthorization = true
-  
-        next();
-      });
-    } else {
-      let result = helper.createResponse(400, "Bad Request", "Header not found")
-      return res.status(400).json(result);
-    }
+    return res.status(200).json({})
 }
 
 exports.logout = async(req, res) => {
