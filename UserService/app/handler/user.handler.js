@@ -31,7 +31,7 @@ exports.validate = (method) => {
               body("identityNumber").isNumeric().withMessage("identityNumber must number").not().isEmpty().withMessage("identityNumber is required").isLength({
                 max: 16,
                 min : 16
-                }).withMessage('identityNumber mush 24 character lenght!').escape().trim(),
+                }).withMessage('identityNumber mush 16 character lenght!').escape().trim(),
               body('emailAddress').notEmpty().withMessage('emailAddress is required!').isEmail().withMessage("Invalid emailAddress format")
               .isLength({
                   max: 64
@@ -205,6 +205,16 @@ exports.createUser = async(req, res) => {
             return res.status(400).json(result)
         }
 
+        const emailAddress = await userRepository.findByEmailAddress(body.emailAddress)
+        if(emailAddress){
+            result = helper.createResponse(400, "Bad Request", "emailAddress already used !")
+            // log info
+            winston.logger.warn(
+                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(response)}`
+            );
+            return res.status(400).json(result)
+        }
+
         const save = await userRepository.createUser({emailAddress: body.emailAddress, userName:body.userName, accountNumber: body.accountNumber, identityNumber: body.identityNumber})
 
         response = helper.createResponse(201, "Created", [], save)
@@ -272,7 +282,8 @@ exports.deleteUser = async(req, res) => {
             return res.status(404).json(result)
         }
 
-        const deleteUser = await userRepository.deleteUser(id)
+        const deleteUser = await userRepository.deleteUser(id, user)
+
 
         response = helper.createResponse(201, "OK", "Data deleted succesfuly")
         return res.status(200).json(response)

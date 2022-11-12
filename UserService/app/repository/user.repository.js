@@ -30,6 +30,11 @@ exports.findByIdentityNumber  = async (identityNumber) => {
 
     return rows
 }
+exports.findByEmailAddress  = async (emailAddress) => {
+    const rows = await userModel.findOne({ emailAddress: emailAddress }).exec()
+
+    return rows
+}
 
 exports.createUser = async (data) => {
     const model = new userModel(data)
@@ -46,7 +51,7 @@ exports.udpateUser =async (id, data) => {
 }
 exports.deleteUser =async (id, data) => {
     const model = new userModel(data)
-    const user = await model.deleteOne({_id: id});
+    const user = await model.delete({_id: id});
 
     return user
 }

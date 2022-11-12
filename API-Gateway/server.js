@@ -15,7 +15,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // ============================== ROUTES API ==============================
 const router = express.Router()
-const userRoute = require("./auth.routes");
+const authRoute = require("./auth.routes");
+const userRoute = require("./user.routes");
 
 //route v1
 app.use('/service/', router);
@@ -32,8 +33,10 @@ app.use((req, res, next) => {
   })
 })
 
-router.use('/auth', userRoute)
+router.use('/auth', authRoute)
+router.use('/user', userRoute)
 
 app.listen(port, () => {
-  console.log(`User Services app listening on port ${port}`)
+  console.log(`API GATEWAY Services app listening on port ${port}`)
 })
+
