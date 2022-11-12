@@ -71,15 +71,10 @@ exports.loginUser = async (req, res) => {
             userName: helper.encryptText(user.userName)
         })
 
-        if(!user.refresToken){
-            // generate refresh token
-            refreshToken = jwt.generateRefreshToken({
-                id: helper.encryptText(user.id),
-            })
-        }else {
-            // generate access token
-            refreshToken = user.refresToken
-        }
+        // generate refresh token
+        refreshToken = jwt.generateRefreshToken({
+            id: helper.encryptText(user.id),
+        })
 
         let data = {
             name: user?.userName || "",

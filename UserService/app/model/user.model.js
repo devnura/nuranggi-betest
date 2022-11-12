@@ -16,9 +16,7 @@ const userSchema = new mongoose.Schema({
     emailAddress: {
         type : String,
         required : true,
-        maxlength: 64,
-        unique: true,
-        trim: true,
+        maxlength: 64
     },
     identityNumber: {
         type : String,

@@ -50,4 +50,21 @@ router.get("/validate-token", async (req, res) => {
     }
 });
 
+router.get("/logout", async (req, res) => {
+  try {
+    let serviceUrl = `${process.env.AUTH_SERVICE_URL}/api/v1/auth/logout`
+
+    const response = await axios.get(serviceUrl, {
+      headers: {
+        Authorization: `${req.headers["authorization"]}`,
+        fromgateway : true
+      }
+    })
+
+    return res.status(response.status).json(response.data)
+  } catch (error) {
+    return res.status(error?.response?.status || 500).json(error?.response?.data || error.message)
+  }
+});
+
 module.exports = router

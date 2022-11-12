@@ -185,6 +185,26 @@ exports.createUser = async(req, res) => {
         let response = {}
         const body = req.body
 
+        const accountNumber = await userRepository.findByAccountNumber(body.accountNumber)
+        if(accountNumber){
+            result = helper.createResponse(400, "Bad Request", "accountNumber already used !")
+            // log info
+            winston.logger.warn(
+                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(response)}`
+            );
+            return res.status(400).json(result)
+        }
+
+        const identityNumber = await userRepository.findByIdentityNumber(body.identityNumber)
+        if(identityNumber){
+            result = helper.createResponse(400, "Bad Request", "identityNumber already used !")
+            // log info
+            winston.logger.warn(
+                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(response)}`
+            );
+            return res.status(400).json(result)
+        }
+
         const save = await userRepository.createUser({emailAddress: body.emailAddress, userName:body.userName, accountNumber: body.accountNumber, identityNumber: body.identityNumber})
 
         response = helper.createResponse(201, "Created", [], save)
