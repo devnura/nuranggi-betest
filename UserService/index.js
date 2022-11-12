@@ -34,8 +34,8 @@ app.use((req, res, next) => {
       message: 'Ohh you are lost, read the API documentation to find your way back home :)'
   })
 })
-
-router.use('/user', userRoute)
+const auth = require("./app/middleware/middleware")
+router.use('/user', auth.isAuthenticate, userRoute)
 
 app.listen(port, () => {
   console.log(`User Services app listening on port ${port}`)

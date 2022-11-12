@@ -3,7 +3,7 @@ const router = express.Router();
 const request = require('../helpers/validateRequest')
 const handler = require("../handler/user.handler")
 
-router.get("/", request.validate, handler.fetchAll);
+router.get("/",  request.validate, handler.fetchAll);
 router.get("/:id", handler.validate("checkId"), request.validate, handler.findById);
 router.get("/accountNumber/:id", request.validate, handler.findByAccountNumber);
 router.get("/identityNumber/:id", request.validate, handler.findByidentityNumber);

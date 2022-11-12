@@ -9,19 +9,16 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const port = process.env.APP_PORT;
 
-// const mongoose = require('mongoose');
-const mongoose = require('./infrastructure/database/database.mongo');
-
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // ============================== ROUTES API ==============================
 const router = express.Router()
-const userRoute = require("./app/routes/auth.routes");
+const userRoute = require("./auth.routes");
 
 //route v1
-app.use('/api/v1/', router);
+app.use('/service/', router);
 
 router.get("/", (req, res) => {
   res.json({
