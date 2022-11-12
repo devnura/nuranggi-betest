@@ -47,7 +47,7 @@ exports.validate = (method) => {
       default:
         break;
     }
-  };
+};
 
 exports.fetchAll = async(req, res) => {
     try {
@@ -60,6 +60,7 @@ exports.fetchAll = async(req, res) => {
             limit: req.query.limit || 10,
         }
 
+        let per_page = params.limit || 10;
         let page = params.page || 1;
         if (page < 1) page = 1;
         let offset = (page - 1) * params.limit;

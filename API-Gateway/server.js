@@ -8,6 +8,9 @@ const app = express()
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const port = process.env.APP_PORT;
+const client = require("./redis")
+
+client.connect()
 
 app.use(cors());
 app.use(bodyParser.json());

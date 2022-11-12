@@ -1,24 +1,32 @@
 const express = require("express");
 const router = express.Router();
 const axios = require("axios")
-// router.get("/",(req, res) => {return res.json({})});
+const client = require("./redis")
 
 router.get("/", async (req, res) => {
   try {
-      const validateToken = await axios.get(`${process.env.AUTH_SERVICE_URL}/api/v1/auth/validate-token`, {
-        headers: {
-          Authorization: `${req.headers["authorization"]}`,
-          fromgateway : true
-        }
-      })
 
-    let serviceUrl = `${process.env.USER_SERVICE_URL}/api/v1/user`
+    const validateToken = await axios.get(`${process.env.AUTH_SERVICE_URL}/api/v1/auth/validate-token`, {
+      headers: {
+        Authorization: `${req.headers["authorization"]}`,
+        fromgateway : true
+      }
+    })
+ 
+    const cache = await client.get(req.url)
+    console.log(cache)
+    if(cache) return res.status(200).json(JSON.parse(cache))
+
+    let serviceUrl = `${process.env.USER_SERVICE_URL}/api/v1/user${req.url}`
     req.isAuthenticate = true
     const response = await axios.get(serviceUrl, {headers: {
       'fromgateway' : true
     }})
 
+    await client.set(req.url, JSON.stringify(response.data))
+    await client.expire(req.url, process.env.KEY_EXPIRED_IN_SECOND) 
     return res.status(response.status).json(response.data)
+   
   } catch (error) {
     return res.status(error?.response?.status || 500).json(error?.response?.data || error.message)
   }
@@ -32,14 +40,22 @@ router.get("/identityNumber/:id", async (req, res) => {
           fromgateway : true
         }
       })
+      
+      const cache = await client.get(req.url)
 
-    let serviceUrl = `${process.env.USER_SERVICE_URL}/api/v1/user/identityNumber/${req.params.id}`
-    req.isAuthenticate = true
-    const response = await axios.get(serviceUrl, {headers: {
-      'fromgateway' : true
-    }})
+      if(cache) return res.status(200).json(JSON.parse(cache))
 
-    return res.status(response.status).json(response.data)
+      let serviceUrl = `${process.env.USER_SERVICE_URL}/api/v1/user/identityNumber/${req.params.id}`
+      req.isAuthenticate = true
+      const response = await axios.get(serviceUrl, {headers: {
+        'fromgateway' : true
+      }})
+  
+      await client.set(req.url, JSON.stringify(response.data))
+      await client.expire(req.url, process.env.KEY_EXPIRED_IN_SECOND) 
+
+      return res.status(response.status).json(response.data)
+
   } catch (error) {
     return res.status(error?.response?.status || 500).json(error?.response?.data || error.message)
   }
@@ -53,6 +69,10 @@ router.get("/accountNumber/:id", async (req, res) => {
           fromgateway : true
         }
       })
+
+    const cache = await client.get(req.url)
+
+    if(cache) return res.status(200).json(JSON.parse(cache))
 
     let serviceUrl = `${process.env.USER_SERVICE_URL}/api/v1/user/identityNumber/${req.params.id}`
     req.isAuthenticate = true
@@ -134,39 +154,5 @@ router.delete("/:id", async (req, res) => {
     return res.status(error?.response?.status || 500).json(error?.response?.data || error.message)
   }
 });
-
-// router.get("/validate-token", async (req, res) => {
-//     try {
-//       let serviceUrl = `${process.env.AUTH_SERVICE_URL}/api/v1/auth/validate-token`
-
-//       const response = await axios.get(serviceUrl, {
-//         headers: {
-//           Authorization: `${req.headers["authorization"]}`,
-//           fromgateway : true
-//         }
-//       })
-
-//       return res.status(response.status).json(response.data)
-//     } catch (error) {
-//       return res.status(error?.response?.status || 500).json(error?.response?.data || error.message)
-//     }
-// });
-
-// router.get("/logout", async (req, res) => {
-//   try {
-//     let serviceUrl = `${process.env.AUTH_SERVICE_URL}/api/v1/auth/logout`
-
-//     const response = await axios.get(serviceUrl, {
-//       headers: {
-//         Authorization: `${req.headers["authorization"]}`,
-//         fromgateway : true
-//       }
-//     })
-
-//     return res.status(response.status).json(response.data)
-//   } catch (error) {
-//     return res.status(error?.response?.status || 500).json(error?.response?.data || error.message)
-//   }
-// });
 
 module.exports = router

@@ -8,6 +8,7 @@
     "http": "^0.0.1-security",
     "http-proxy-middleware": "^2.0.6",
     "open": "^8.4.0",
+    "redis": "^4.5.0",
     "request-promise-native": "^1.0.9"
   }
 }
