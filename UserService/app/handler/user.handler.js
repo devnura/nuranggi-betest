@@ -122,10 +122,10 @@ exports.findById = async (req, res) => {
 exports.findByidentityNumber = async (req, res) => {
     try {
         let response = {}
-
         const { id } = req.params
 
         const user = await userRepository.findByIdentityNumber(id)
+
         if (!user){
             result = helper.createResponse(404, "Not Found", "User Not Found")
             // log info
@@ -153,9 +153,8 @@ exports.findByidentityNumber = async (req, res) => {
 exports.findByAccountNumber = async (req, res) => {
     try {
         let response = {}
-
         const { id } = req.params
-
+        console.log("masuk")
         const user = await userRepository.findByAccountNumber(id)
         if (!user){
             result = helper.createResponse(404, "Not Found", "User Not Found")
@@ -252,7 +251,16 @@ exports.updateUser = async(req, res) => {
 
         const save = await userRepository.udpateUser(id, {emailAddress: body.emailAddress, userName:body.userName, accountNumber: body.accountNumber})
 
-        response = helper.createResponse(201, "OK", [], "Data upated succesfully")
+        if(save.modifiedCount == 0){
+            response = helper.createResponse(404, "FAILED UPATED DATA", "Data upated failed")
+
+            winston.logger.info(
+                `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(response)}`
+            );
+            return res.status(404).json(response)
+        }
+
+        response = helper.createResponse(200, "OK", [], "Data upated succesfully")
 
         winston.logger.info(
             `${req.requestId} ${req.requestUrl} RESPONSE : ${JSON.stringify(response)}`
@@ -285,8 +293,7 @@ exports.deleteUser = async(req, res) => {
 
         const deleteUser = await userRepository.deleteUser(id, user)
 
-
-        response = helper.createResponse(201, "OK", "Data deleted succesfuly")
+        response = helper.createResponse(200, "OK", "Data deleted succesfuly")
         return res.status(200).json(response)
 
     } catch (error) {

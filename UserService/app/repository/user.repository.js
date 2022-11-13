@@ -44,14 +44,12 @@ exports.createUser = async (data) => {
 }
 
 exports.udpateUser =async (id, data) => {
-    const model = new userModel(data)
-    const user = await model.updateOne({_id: id}, data);
+    const user = await userModel.findByIdAndUpdate({_id: id}, data);
 
     return user
 }
 exports.deleteUser =async (id, data) => {
-    const model = new userModel(data)
-    const user = await model.delete({_id: id});
+    const user = await userModel.deleteOne({_id: id});
 
     return user
 }
